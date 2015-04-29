@@ -21,6 +21,7 @@ This gem tests has next requirements:
 ## Contribution
 
 If you want to contribute, please follow next instructions:
+
 1. Fork project
 1. Do your changes
 1. Write tests for them
