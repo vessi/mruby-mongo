@@ -49,7 +49,7 @@ const struct mrb_data_type mrb_mongo_collection_data_type = {
 
 void mrb_mongo_bson_data_free(mrb_state *mrb, void *p) {
   mrb_mongo_bson_data *data = (mrb_mongo_bson_data*)p;
-  bson_free(data->bson);
+  bson_destroy(data->bson);
 };
 
 void mrb_mongo_client_data_free(mrb_state *mrb, void *p){

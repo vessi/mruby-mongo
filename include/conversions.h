@@ -1,13 +1,39 @@
-/*void mrb_to_bson(mrb_state *mrb, char *key, mrb_value value, bson_t *doc) {
+#include <errno.h>
+#include <memory.h>
+#include <mongoc.h>
+#include <mruby.h>
+#include <mruby/array.h>
+#include <mruby/class.h>
+#include <mruby/data.h>
+#include <mruby/hash.h>
+#include <mruby/string.h>
+#include <mruby/variable.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "types.h"
+
+#ifndef _CONVERSIONS_H
+#define _CONVERSIONS_H
+
+void mrb_value_to_bson(mrb_state *mrb, char *key, mrb_value value, bson_t *doc);
+void mrb_ary_to_bson(mrb_state *mrb, mrb_value ary, bson_t *doc);
+void mrb_hash_to_bson(mrb_state *mrb, mrb_value hash, bson_t *doc);
+
+void mrb_to_bson(mrb_state *mrb, char *key, mrb_value value, bson_t *doc) {
   char *str_value;
   int64_t fix_value;
   bool bool_value;
   double double_value;
-  bson_t child;
+  mrb_value tmp_value;
+  bson_t *child;
+
+  tmp_value = value;
 
   switch(mrb_type(value)) {
+    case MRB_TT_SYMBOL:
+      tmp_value = mrb_obj_as_string(mrb, value);
     case MRB_TT_STRING:
-      str_value = mrb_str_to_cstr(mrb, value);
+      str_value = mrb_str_to_cstr(mrb, tmp_value);
       bson_append_utf8(doc, key, -1, str_value, -1);
       break;
     case MRB_TT_FIXNUM:
@@ -24,16 +50,16 @@
       bson_append_double(doc, key, -1, double_value);
       break;
     case MRB_TT_ARRAY:
-      bson_init(&child);
-      mrb_ary_to_bson(mrb, value, &child);
-      bson_append_array(doc, key, -1, &child);
-      bson_free(&child);
+      child = bson_new();
+      mrb_ary_to_bson(mrb, value, child);
+      bson_append_array(doc, key, -1, child);
+      bson_destroy(child);
       break;
     case MRB_TT_HASH:
-      bson_init(&child);
-      mrb_hash_to_bson(mrb, value, &child);
-      bson_append_document(doc, key, -1, &child);
-      bson_free(&child);
+      child = bson_new();
+      mrb_hash_to_bson(mrb, value, child);
+      bson_append_document(doc, key, -1, child);
+      bson_destroy(child);
       break;
     default:
       break;    
@@ -42,21 +68,35 @@
 
 void mrb_ary_to_bson(mrb_state *mrb, mrb_value ary, bson_t *doc) {
   int len = RARRAY_LEN(ary);
-  for (int i = 0; i < len; ++i) {
-    mrb_value value = mrb_ary_ref(mrb, ary, i);
-    char* key;
-    mrb_to_bson(mrb, itoa(i, key, 10), value, doc);
+  char buffer[20];
+  mrb_value tmp_value;
+  for (int i = 0; i < len; i++) {
+    tmp_value = mrb_ary_ref(mrb, ary, i);
+    sprintf(buffer, "%d", i);
+    mrb_to_bson(mrb, buffer, tmp_value, doc);
   }
 }
 
 void mrb_hash_to_bson(mrb_state *mrb, mrb_value hash, bson_t *doc) {
   mrb_value ary = mrb_hash_keys(mrb, hash);
   int len = RARRAY_LEN(ary);
+  char * str_key;
+
   for (int i = 0; i < len; ++i) {
     mrb_value key = mrb_ary_ref(mrb, ary, i);
-    char * str_key = mrb_str_to_cstr(mrb, key);
-    int key_len = strlen(str_key);
+    switch (mrb_type(key)) {
+      case MRB_TT_STRING:
+        str_key = mrb_str_to_cstr(mrb, key);
+        break;
+      case MRB_TT_SYMBOL:
+        str_key = mrb_str_to_cstr(mrb, mrb_obj_as_string(mrb, key));
+        break;
+      default:
+        mrb_raise(mrb, E_RUNTIME_ERROR, "keys should be only symbol or string");
+        break;
+    }
     mrb_value value = mrb_hash_get(mrb, hash, key);
     mrb_to_bson(mrb, str_key, value, doc);
   }
-} */
+}
+#endif

@@ -74,7 +74,5 @@ end
 =end
 
 assert 'it should properly encode hash to bson and json' do
-  assert { Mongo::Bson.new.to_json == '{}' }
-  assert { Mongo::Bson.new({key: "value"}) == '{"key": "value"}' }
-  true
+  (Mongo::Bson.new({key: "value"}).to_json == '{ "key" : "value" }') and (Mongo::Bson.new.to_json == '{ }')
 end

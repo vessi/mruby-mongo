@@ -2,6 +2,7 @@ MRuby::Gem::Specification.new('mruby-mongo') do |spec|
   MONGO_LIB_VERSION = "1.0"
   spec.license = 'MIT'
   spec.author  = 'Mikhail Bortnyk'
+  spec.summary = 'MongoDB driver for mRuby'
 
   spec.cc.flags << `pkg-config --cflags libmongoc-#{MONGO_LIB_VERSION}`.delete("\n\r").split(" ")
   mongo_libs     = `pkg-config --libs libmongoc-#{MONGO_LIB_VERSION}`.delete("\n\r").split(" ")

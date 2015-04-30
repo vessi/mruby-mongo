@@ -3,7 +3,7 @@
 void mrb_mruby_mongo_gem_init(mrb_state* mrb) {
   struct RClass *class_mongo = mrb_define_module(mrb, "Mongo");
 
-  struct RClass *class_mongo_bson = mrb_define_class_under(mrb, class_mongo, "Bson", mbr->object_class);
+  struct RClass *class_mongo_bson = mrb_define_class_under(mrb, class_mongo, "Bson", mrb->object_class);
   mrb_define_method(mrb, class_mongo_bson, "initialize", mrb_mongo_bson_init, MRB_ARGS_OPT(1));
   mrb_define_method(mrb, class_mongo_bson, "to_json", mrb_mongo_to_json, MRB_ARGS_NONE());
 
