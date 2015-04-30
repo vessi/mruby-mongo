@@ -16,6 +16,8 @@
 #define _CONVERSIONS_H
 
 void mrb_to_bson(mrb_state *mrb, const char *key, mrb_value value, bson_t *doc);
+mrb_value bson_to_mrb(mrb_state *mrb, const bson_value_t *value);
+void bson_to_mrb_hash(mrb_state *mrb, const bson_t* doc, mrb_value hash);
 void mrb_ary_to_bson(mrb_state *mrb, mrb_value ary, bson_t *doc);
 void mrb_hash_to_bson(mrb_state *mrb, mrb_value hash, bson_t *doc);
 
@@ -63,6 +65,84 @@ void mrb_to_bson(mrb_state *mrb, const char *key, mrb_value value, bson_t *doc) 
       break;
     default:
       break;    
+  }
+}
+
+mrb_value bson_to_mrb(mrb_state *mrb, const bson_value_t *value) {
+  mrb_value tmp, tmp2, tmp_class, tmp_args_2[2];
+  bson_t *tmp_bson;
+  const bson_value_t *bson_value;
+  bson_iter_t iter;
+  char oid[25];
+  bool test;
+  int64_t timestamp;
+
+  switch (value->value_type) {
+    case BSON_TYPE_OID:
+      bson_oid_to_string(&value->value.v_oid, oid);
+      tmp = mrb_str_new_cstr(mrb, oid);
+      break;
+    case BSON_TYPE_UTF8:
+      tmp = mrb_str_new_cstr(mrb, value->value.v_utf8.str);
+      break;
+    case BSON_TYPE_BOOL:
+      tmp = mrb_bool_value(value->value.v_bool);
+      break;
+    case BSON_TYPE_NULL:
+      tmp = mrb_nil_value();
+      break;
+    case BSON_TYPE_INT32:
+      tmp = mrb_fixnum_value(value->value.v_int32);
+      break;
+    case BSON_TYPE_DATE_TIME:
+      timestamp = value->value.v_datetime;
+      tmp_args_2[0] = mrb_float_value(mrb, timestamp / 1000);
+      tmp_args_2[1] = mrb_float_value(mrb, timestamp % 1000);
+      tmp_class = mrb_const_get(mrb, mrb_obj_value(mrb->object_class), mrb_intern_lit(mrb, "Time"));
+      tmp = mrb_funcall_argv(mrb, tmp_class, mrb_intern_lit(mrb, "at"), 2, tmp_args_2);
+      tmp = mrb_funcall(mrb, tmp, "utc", 0);
+      break;
+    case BSON_TYPE_ARRAY:
+      tmp_bson = bson_new_from_data(value->value.v_doc.data, value->value.v_doc.data_len);
+      tmp      = mrb_ary_new(mrb);
+      test = bson_iter_init(&iter, tmp_bson);
+      while (bson_iter_next(&iter)) {
+        bson_value = bson_iter_value(&iter);
+        tmp2 = bson_to_mrb(mrb, bson_value);
+        mrb_ary_push(mrb, tmp, tmp2);
+      }
+      bson_destroy(tmp_bson);
+      break;
+    case BSON_TYPE_DOCUMENT:
+      tmp_bson = bson_new_from_data(value->value.v_doc.data, value->value.v_doc.data_len);
+      tmp      = mrb_hash_new(mrb);
+      bson_to_mrb_hash(mrb, tmp_bson, tmp);
+      break;
+    case BSON_TYPE_SYMBOL:
+      tmp = mrb_symbol_value(mrb_intern_cstr(mrb, value->value.v_symbol.symbol));
+      break;
+    default:
+      printf("unrecognized type %#04x\n", value->value_type);
+      tmp = mrb_nil_value();
+      break;
+  }
+  return tmp;
+}
+
+void bson_to_mrb_hash(mrb_state *mrb, const bson_t* doc, mrb_value hash) {
+  bson_iter_t iter;
+  const bson_value_t *value;
+  const char *key;
+  mrb_value mrb_key;
+  mrb_value mrb_value;
+
+  bson_iter_init(&iter, doc);
+  while (bson_iter_next(&iter)) {
+    key = bson_iter_key(&iter);
+    mrb_key = mrb_str_new_cstr(mrb, key);
+    value = bson_iter_value(&iter);
+    mrb_value = bson_to_mrb(mrb, value);
+    mrb_hash_set(mrb, hash, mrb_key, mrb_value);
   }
 }
 

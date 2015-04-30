@@ -32,6 +32,7 @@ void mrb_mruby_mongo_gem_init(mrb_state* mrb) {
   mrb_define_method(mrb, class_mongo_query, "sort", mrb_mongo_query_sort, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, class_mongo_query, "limit", mrb_mongo_query_limit, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, class_mongo_query, "skip", mrb_mongo_query_skip, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, class_mongo_query, "fields", mrb_mongo_query_fields, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, class_mongo_query, "count", mrb_mongo_query_count, MRB_ARGS_NONE());
   mrb_define_method(mrb, class_mongo_query, "to_a", mrb_mongo_query_to_array, MRB_ARGS_NONE());
 

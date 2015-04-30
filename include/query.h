@@ -19,6 +19,7 @@ mrb_value mrb_mongo_query_init(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_query_sort(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_query_limit(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_query_skip(mrb_state *mrb, mrb_value self);
+mrb_value mrb_mongo_query_fields(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_query_count(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_query_to_array(mrb_state *mrb, mrb_value self);
 
@@ -41,33 +42,68 @@ mrb_value mrb_mongo_query_init(mrb_state *mrb, mrb_value self) {
 }
 
 mrb_value mrb_mongo_query_sort(mrb_state *mrb, mrb_value self) {
-  mrb_value sort_hash;
+  mrb_value sort_hash, query;
 
   mrb_get_args(mrb, "H", &sort_hash);
 
-  mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "sort_hash"), sort_hash);
+  query = mrb_obj_dup(mrb, self);
 
-  return self;
+  mrb_iv_set(mrb, query, mrb_intern_lit(mrb, "sort_hash"), sort_hash);
+
+  return query;
 }
 
 mrb_value mrb_mongo_query_limit(mrb_state *mrb, mrb_value self) {
-  mrb_value limit;
+  mrb_value limit, query;
 
   mrb_get_args(mrb, "i", &limit);
 
-  mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "limit"), mrb_fixnum_value(mrb_fixnum(limit)));
+  query = mrb_obj_dup(mrb, self);
 
-  return self;
+  mrb_iv_set(mrb, query, mrb_intern_lit(mrb, "limit"), mrb_fixnum_value(mrb_fixnum(limit)));
+
+  return query;
 }
 
 mrb_value mrb_mongo_query_skip(mrb_state *mrb, mrb_value self) {
-  mrb_value skip;
+  mrb_value skip, query;
 
   mrb_get_args(mrb, "i", &skip);
 
-  mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "skip"), mrb_fixnum_value(mrb_fixnum(skip)));
+  query = mrb_obj_dup(mrb, self);
 
-  return self;
+  mrb_iv_set(mrb, query, mrb_intern_lit(mrb, "skip"), mrb_fixnum_value(mrb_fixnum(skip)));
+
+  return query;
+}
+
+mrb_value mrb_mongo_query_fields(mrb_state *mrb, mrb_value self) {
+  mrb_value fields_ary, fields_hash, tmp_field, query;
+  int len, i;
+
+  mrb_get_args(mrb, "o", &fields_ary);
+
+  switch (mrb_type(fields_ary)) {
+    case MRB_TT_ARRAY:
+      len = RARRAY_LEN(fields_ary);
+      fields_hash = mrb_hash_new(mrb);
+      for (i=0; i < len; i++) {
+        tmp_field = mrb_ary_ref(mrb, fields_ary, i);
+        mrb_hash_set(mrb, fields_hash, tmp_field, mrb_fixnum_value(1));
+      }
+      break;
+    case MRB_TT_HASH:
+      fields_hash = mrb_obj_dup(mrb, fields_ary);
+      break;
+    default:
+      mrb_raise(mrb, E_TYPE_ERROR, "Argument should be Array or Hash");
+      break;
+  }
+
+  query = mrb_obj_dup(mrb, self);
+  mrb_iv_set(mrb, query, mrb_intern_lit(mrb, "fields_hash"), fields_hash);
+
+  return query;
 }
 
 mrb_value mrb_mongo_query_count(mrb_state *mrb, mrb_value self) {
@@ -96,8 +132,7 @@ mrb_value mrb_mongo_query_to_array(mrb_state *mrb, mrb_value self) {
   mongoc_cursor_t *cursor;
   bson_t *query, *fields;
   const bson_t *doc;
-  char* doc_json;
-  mrb_value collection, query_hash, fields_hash, sort_hash, result_hash;
+  mrb_value collection, query_hash, fields_hash, sort_hash, result_hash, mrb_result, mrb_doc;
 
   collection  = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "collection"));
   query_hash  = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "query_hash"));
@@ -133,10 +168,12 @@ mrb_value mrb_mongo_query_to_array(mrb_state *mrb, mrb_value self) {
     NULL
   );
 
+  mrb_result = mrb_ary_new(mrb);
+
   while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
-    doc_json = bson_as_json(doc, NULL);
-    printf("%s\n", doc_json);
-    bson_free(doc_json);
+    mrb_doc = mrb_hash_new(mrb);
+    bson_to_mrb_hash(mrb, doc, mrb_doc);
+    mrb_ary_push(mrb, mrb_result, mrb_doc);
   }
 
   mongoc_cursor_destroy(cursor);
@@ -145,7 +182,7 @@ mrb_value mrb_mongo_query_to_array(mrb_state *mrb, mrb_value self) {
   }
   bson_destroy(query);
 
-  return self;
+  return mrb_result;
 }
 
 #endif
