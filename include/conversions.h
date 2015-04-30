@@ -15,11 +15,11 @@
 #ifndef _CONVERSIONS_H
 #define _CONVERSIONS_H
 
-void mrb_value_to_bson(mrb_state *mrb, char *key, mrb_value value, bson_t *doc);
+void mrb_to_bson(mrb_state *mrb, const char *key, mrb_value value, bson_t *doc);
 void mrb_ary_to_bson(mrb_state *mrb, mrb_value ary, bson_t *doc);
 void mrb_hash_to_bson(mrb_state *mrb, mrb_value hash, bson_t *doc);
 
-void mrb_to_bson(mrb_state *mrb, char *key, mrb_value value, bson_t *doc) {
+void mrb_to_bson(mrb_state *mrb, const char *key, mrb_value value, bson_t *doc) {
   char *str_value;
   int64_t fix_value;
   bool bool_value;
@@ -68,12 +68,14 @@ void mrb_to_bson(mrb_state *mrb, char *key, mrb_value value, bson_t *doc) {
 
 void mrb_ary_to_bson(mrb_state *mrb, mrb_value ary, bson_t *doc) {
   int len = RARRAY_LEN(ary);
-  char buffer[20];
+  const char* key;
+  char buffer[16];
   mrb_value tmp_value;
   for (int i = 0; i < len; i++) {
     tmp_value = mrb_ary_ref(mrb, ary, i);
-    sprintf(buffer, "%d", i);
-    mrb_to_bson(mrb, buffer, tmp_value, doc);
+    //used bson_uint32_to_string from libbson due to https://api.mongodb.org/libbson/1.0.0/performance.html
+    bson_uint32_to_string(i, &key, buffer, sizeof buffer);
+    mrb_to_bson(mrb, key, tmp_value, doc);
   }
 }
 

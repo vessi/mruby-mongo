@@ -14,9 +14,45 @@
 #ifndef _DATABASE_H
 #define _DATABASE_H
 
+mrb_value mrb_mongo_database_init(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_database_get_client(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_database_collections(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_database_find_collection(mrb_state *mrb, mrb_value self);
+
+mrb_value mrb_mongo_database_init(mrb_state *mrb, mrb_value self) {
+  mrb_value client, db_name;
+  mrb_mongo_client_data *client_data;
+  mrb_mongo_database_data *data;
+  mongoc_database_t *database;
+
+  //parse args
+  mrb_get_args(mrb, "oS", &client, &db_name);
+
+  //prepare data structure
+  data = (mrb_mongo_database_data *)DATA_PTR(self);
+  if (data) {
+    mrb_free(mrb, data);
+  }
+  DATA_TYPE(self) = &mrb_mongo_database_data_type;
+  DATA_PTR(self) = NULL;
+  data = (mrb_mongo_database_data *)mrb_malloc(mrb, sizeof(mrb_mongo_database_data));
+
+  //get client data
+  client_data = (mrb_mongo_client_data *)DATA_PTR(client);
+
+  database = mongoc_client_get_database(client_data->client, mrb_str_to_cstr(mrb, db_name));
+
+  //set internal variables
+  mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "client"), client);
+  mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "name"), db_name);
+
+  //set data structure
+  data->db = database;
+  DATA_PTR(self) = data;
+
+  //return value
+  return self;
+}
 
 mrb_value mrb_mongo_database_get_client(mrb_state *mrb, mrb_value self) {
   mrb_value client = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "client"));
@@ -47,10 +83,8 @@ mrb_value mrb_mongo_database_collections(mrb_state *mrb, mrb_value self) {
 }
 
 mrb_value mrb_mongo_database_find_collection(mrb_state *mrb, mrb_value self) {
-  mrb_value name, c;
-  mrb_mongo_database_data *db_data = DATA_PTR(self);
-  mrb_mongo_collection_data *collection_data;
-  mongoc_collection_t *collection;
+  mrb_value name, collection;
+  mrb_value collection_args[2];
   struct RClass *_class_mongo, *_class_mongo_collection;
 
   mrb_get_args(mrb, "o", &name);
@@ -64,19 +98,16 @@ mrb_value mrb_mongo_database_find_collection(mrb_state *mrb, mrb_value self) {
       mrb_raise(mrb, E_RUNTIME_ERROR, "Collection name should be symbol or string");
   }
 
-  collection = mongoc_database_get_collection(db_data->db, mrb_str_to_cstr(mrb, name));
+  //populate collection args
+  collection_args[0] = self;
+  collection_args[1] = name;
 
+  //instantiate Mongo::Collection
   _class_mongo = mrb_module_get(mrb, "Mongo");
   _class_mongo_collection = mrb_class_ptr(mrb_const_get(mrb, mrb_obj_value(_class_mongo), mrb_intern_lit(mrb, "Collection")));
-  c = mrb_class_new_instance(mrb, 0, NULL, _class_mongo_collection);
+  collection = mrb_obj_new(mrb, _class_mongo_collection, 2, collection_args);
 
-  DATA_TYPE(c) = &mrb_mongo_collection_data_type;
-  DATA_PTR(c) = NULL;
-  collection_data = (mrb_mongo_collection_data *)mrb_malloc(mrb, sizeof(mrb_mongo_collection_data));
-  collection_data->collection = collection;
-  DATA_PTR(c) = collection_data;
-
-  mrb_iv_set(mrb, c, mrb_intern_lit(mrb, "database"), self);
-  return c;
+  return collection;
 }
+
 #endif

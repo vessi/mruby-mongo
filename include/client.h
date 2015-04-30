@@ -90,12 +90,11 @@ mrb_value mrb_mongo_client_databases(mrb_state *mrb, mrb_value self) {
 }
 
 mrb_value mrb_mongo_client_find_database(mrb_state *mrb, mrb_value self) {
-  mrb_value name, c;
-  mrb_mongo_client_data *data = DATA_PTR(self);
-  mrb_mongo_database_data *db_data;
-  mongoc_database_t * database;
+  mrb_value name, database;
+  mrb_value database_args[2];
   struct RClass *_class_mongo, *_class_mongo_database;
 
+  //parse args
   mrb_get_args(mrb, "o", &name);
   switch(mrb_type(name)) {
     case MRB_TT_STRING:
@@ -107,20 +106,16 @@ mrb_value mrb_mongo_client_find_database(mrb_state *mrb, mrb_value self) {
       mrb_raise(mrb, E_RUNTIME_ERROR, "Database name should be symbol or string");
   }
 
-  database = mongoc_client_get_database(data->client, mrb_str_to_cstr(mrb, name));
+  //populate database args
+  database_args[0] = self;
+  database_args[1] = name;
 
+  //create Mongo::Database instance
   _class_mongo = mrb_module_get(mrb, "Mongo");
   _class_mongo_database = mrb_class_ptr(mrb_const_get(mrb, mrb_obj_value(_class_mongo), mrb_intern_lit(mrb, "Database")));
-  c = mrb_class_new_instance(mrb, 0, NULL, _class_mongo_database);
+  database = mrb_obj_new(mrb, _class_mongo_database, 2, database_args);
 
-  DATA_TYPE(c) = &mrb_mongo_database_data_type;
-  DATA_PTR(c) = NULL;
-  db_data = (mrb_mongo_database_data *)mrb_malloc(mrb, sizeof(mrb_mongo_database_data));
-  db_data->db = database;
-  DATA_PTR(c) = db_data;
-
-  mrb_iv_set(mrb, c, mrb_intern_lit(mrb, "client"), self);
-  return c;
+  return database;
 }
 
 mrb_value mrb_mongo_client_get_address(mrb_state *mrb, mrb_value self) {
@@ -130,9 +125,8 @@ mrb_value mrb_mongo_client_get_address(mrb_state *mrb, mrb_value self) {
 mrb_value mrb_mongo_client_database_exists(mrb_state *mrb, mrb_value self) {
   mrb_value name;
   mrb_mongo_client_data *data = DATA_PTR(self);
-  char **strv;
+  char **strv, *db_name;
   bson_error_t error;
-  char *db_name;
 
   mrb_get_args(mrb, "o", &name);
   switch(mrb_type(name)) {

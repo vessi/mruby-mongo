@@ -7,6 +7,7 @@
 #include "client.h"
 #include "database.h"
 #include "collection.h"
+#include "query.h"
 
 #define DONE mrb_gc_arena_restore(mrb, 0);
 
