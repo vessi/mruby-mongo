@@ -36,7 +36,7 @@ void mrb_mruby_mongo_gem_init(mrb_state* mrb) {
   mrb_define_method(mrb, class_mongo_query, "count", mrb_mongo_query_count, MRB_ARGS_NONE());
   mrb_define_method(mrb, class_mongo_query, "to_a", mrb_mongo_query_to_array, MRB_ARGS_NONE());
 
-  //struct RClass *class_mongo_record = mrb_define_class_under(mrb, class_mongo, "Record", mrb->object_class);
+  struct RClass *class_mongo_record = mrb_define_class_under(mrb, class_mongo, "Record", mrb->hash_class);
 
   //struct RClass *class_mongo_cursor = mrb_define_class_under(mrb, class_mongo, "Cursor", mrb->object_class);
 
