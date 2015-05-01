@@ -13,7 +13,7 @@ to your `build_config.rb` file and do `make` to build or `make test` to do tests
 
 ## Dependencies
 
-To build this gem you should have `libmongoc` installed at least with version 1.0.
+To build this gem you should have [mongo-c-driver](https://github.com/mongodb/mongo-c-driver) installed at least with version 1.0.
 
 This gem tests has next requirements:
 - local mongo server, up and running on localhost:27017
