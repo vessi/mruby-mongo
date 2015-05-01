@@ -7,7 +7,7 @@ compiler:
 before_install:
   - sudo apt-get -qq update
 install:
-  - sudo apt-get -qq install rake bison git gperf
+  - sudo apt-get -qq install rake bison git gperf libmongo-client-dev
 before_script:
   - cd ../
   - git clone https://github.com/mruby/mruby.git
