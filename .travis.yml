@@ -13,6 +13,6 @@ before_script:
   - git clone https://github.com/mruby/mruby.git
   - cd mruby
   - cp -fp ../mruby-mongo/.travis_build_config.rb build_config.rb
-  - "mongo test --eval 'db.test.insert({status: \'ok\'})'"
+  - "mongo test --eval 'db.test.insert({status: \"ok\"})'"
 script:
   - rake all test
