@@ -1,4 +1,5 @@
 # Mongo driver for mRuby
+[![Build Status](https://travis-ci.org/vessi/mruby-mongo.svg?branch=develop)](https://travis-ci.org/vessi/mruby-mongo)
 
 ## Usage
 
