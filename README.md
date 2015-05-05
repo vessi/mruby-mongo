@@ -11,6 +11,10 @@ conf.gem :git => 'https://github.com/vessi/mruby-mongo.git'
 
 to your `build_config.rb` file and do `make` to build or `make test` to do tests.
 
+## Reference
+
+You can take a look at API reference [here](https://github.com/vessi/mruby-mongo/wiki/Reference).
+
 ## Dependencies
 
 To build this gem you should have [mongo-c-driver](https://github.com/mongodb/mongo-c-driver) installed at least with version 1.0.
