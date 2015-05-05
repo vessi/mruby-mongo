@@ -52,26 +52,37 @@ assert 'it should return proper database for collection' do
   collection.database == db
 end
 
-=begin
-assert 'it should allow insert record in collection' do
+assert 'it should return proper count for collection (also test for insert and drop)' do
   client = Mongo::Client.new
-  record = client['test']['test'].insert({test: 'ok'})
-  (client['test']['test'].count == 1) and (record['test'] == 'ok')
+  db = client['test']
+  collection = db['test']
+  collection.drop
+  collection.insert(test: 'ok')
+  collection.where.count == 1
 end
 
-assert 'it should allow to find one record' do
+assert 'it should return empty array if documents not found' do
   client = Mongo::Client.new
-  record = client['test']['test'].find({test: 'ok'}, limit: 1)
-  (record != nil) and (record.is_a? Mongo::Record)
+  db = client['test']
+  collection = db['test']
+  collection.where(test: 'not ok').to_a == []
 end
 
-assert 'it should allow delete record from collection' do
+assert 'it should allow proper skips, limits and sorting' do
   client = Mongo::Client.new
-  record = client['test']['test'].find({test: 'ok'}, limit: 1)
-  record.drop
-  client['test']['test'].count == 0
+  db = client['test']
+  collection = db['test']
+  collection.drop
+  5.times do |t|
+    collection.insert(order: t)
+  end
+  count_correct = collection.where.count == 5
+  # I used limit.to_a here because limit does not creates new query, and count applies to query
+  limit_correct = collection.where.limit(1).to_a.length == 1
+  skip_correct = collection.where.limit(1).to_a != collection.where.limit(1).skip(1).to_a
+  sort_correct = collection.where.sort(order: -1).to_a.first["order"] == 4
+  count_correct and limit_correct and skip_correct and sort_correct
 end
-=end
 
 assert 'it should properly encode hash to bson and json' do
   (Mongo::Bson.new({key: "value"}).to_json == '{ "key" : "value" }') and (Mongo::Bson.new.to_json == '{ }')

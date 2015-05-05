@@ -23,7 +23,7 @@ void mrb_hash_to_bson(mrb_state *mrb, mrb_value hash, bson_t *doc);
 
 void mrb_to_bson(mrb_state *mrb, const char *key, mrb_value value, bson_t *doc) {
   char *str_value;
-  int64_t fix_value;
+  int32_t fix_short_value;
   uint64_t ufix_value;
   bool bool_value;
   double double_value;
@@ -47,8 +47,8 @@ void mrb_to_bson(mrb_state *mrb, const char *key, mrb_value value, bson_t *doc) 
       }
       break;
     case MRB_TT_FIXNUM:
-      fix_value = mrb_fixnum(value);
-      bson_append_int64(doc, key, -1, fix_value);
+      fix_short_value = mrb_fixnum(value);
+      bson_append_int32(doc, key, -1, fix_short_value);
       break;
     case MRB_TT_FALSE:
       if (mrb_nil_p(value)) {

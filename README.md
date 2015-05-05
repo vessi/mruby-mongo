@@ -17,7 +17,6 @@ To build this gem you should have [mongo-c-driver](https://github.com/mongodb/mo
 
 This gem tests has next requirements:
 - local mongo server, up and running on localhost:27017
-- database `test` with collection `test` exists on server
 
 ## Contribution
 
