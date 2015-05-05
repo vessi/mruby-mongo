@@ -15,23 +15,6 @@
 #ifndef _CONVERSIONS_H
 #define _CONVERSIONS_H
 
-//we declare mrb_time here because it's internal for time.c
-enum mrb_timezone {
-  MRB_TIMEZONE_NONE   = 0,
-  MRB_TIMEZONE_UTC    = 1,
-  MRB_TIMEZONE_LOCAL  = 2,
-  MRB_TIMEZONE_LAST   = 3
-};
-
-struct mrb_time {
-  time_t              sec;
-  time_t              usec;
-  enum mrb_timezone   timezone;
-  struct tm           datetime;
-};
-
-static const struct mrb_data_type mrb_time_type = { "Time", mrb_free };
-
 void mrb_to_bson(mrb_state *mrb, const char *key, mrb_value value, bson_t *doc);
 mrb_value bson_to_mrb(mrb_state *mrb, const bson_value_t *value);
 void bson_to_mrb_hash(mrb_state *mrb, const bson_t* doc, mrb_value hash);
