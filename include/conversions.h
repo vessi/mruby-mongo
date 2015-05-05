@@ -28,6 +28,7 @@ void mrb_to_bson(mrb_state *mrb, const char *key, mrb_value value, bson_t *doc) 
   double double_value;
   mrb_value tmp_value;
   bson_t *child;
+  bson_oid_t oid_value;
 
   tmp_value = value;
 
@@ -36,7 +37,13 @@ void mrb_to_bson(mrb_state *mrb, const char *key, mrb_value value, bson_t *doc) 
       tmp_value = mrb_obj_as_string(mrb, value);
     case MRB_TT_STRING:
       str_value = mrb_str_to_cstr(mrb, tmp_value);
-      bson_append_utf8(doc, key, -1, str_value, -1);
+      //special case for oid:
+      if ((strcmp(key, "_id") == 0) && (bson_oid_is_valid(str_value, strlen(str_value)))) {
+        bson_oid_init_from_string(&oid_value, str_value);
+        bson_append_oid(doc, key, -1, &oid_value);
+      } else {
+        bson_append_utf8(doc, key, -1, str_value, -1);
+      }
       break;
     case MRB_TT_FIXNUM:
       fix_value = mrb_fixnum(value);
