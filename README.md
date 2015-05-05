@@ -39,7 +39,7 @@ This method returns `true` if database exists on server
 
 #### Initialization
 
-Database can be initialized via `Mongo::Client#[]` method or direct by `Mongo::Database.new(client)`. It awaits `Mongo::Client` instance as argument.
+Database can be initialized via `Mongo::Client#[]` method or direct by `Mongo::Database.new(client, name)`. It awaits `Mongo::Client` instance as argument.
 
 #### `#client`
 
@@ -55,7 +55,76 @@ This method creates `Mongo::Collection` instance connected with this database.
 
 ### Collection
 
+#### Initialization
+
+Collection can be initialized via `Mongo::Database#[]` method or direct by `Mongo::Collection.new(db, name)`. It awaits `Mongo::Database` instance as argument.
+
+#### `#database`
+
+This method provides reader for collection's database.
+
+#### `#count`
+
+This methods returns number of documents in collection.
+
+#### `#insert`
+
+This method awaits `Hash` instance as argument and returns inserted document with fulfilled `_id` field.
+
+#### `#drop`
+
+This method awaits optional `Hash` instance. This hash will be used as query for documents removing. Example:
+
+```ruby
+collection.drop(status: 'ok') # it should drop all documents with {status: 'ok'}
+collection.drop # it should drop all documents in collection
+```
+
+#### `#update`
+
+This methods awaits two required `Hash` arguments and one optional boolean.
+
+```ruby
+# format is corresponding to: http://docs.mongodb.org/v2.4/reference/method/db.collection.update
+collection.update(query, update) # this should be executed as db.collection.update(query, update, false, true)
+collection.update(query, update, true) # this should be executed as db.collection.update(query, update, true, true)
+```
+
+So, for `#update` method `multiple` flag is always set to true.
+
+#### `#where`
+
+This method instantiates `Mongo::Query` and awaits optional hash argument which should be used as query. If no argument passed - blank query should be used.
+
 ### Query
+
+#### Initialization
+
+Query can be initialized via `Mongo::Collection#where` or with `Mongo::Query.new(collection, query)`, where first argument is `Mongo::Collection` object and second argument is query hash.
+
+#### `#sort`
+
+Instantiates new `Mongo::Query` instance from existing but adding sort hash to it. Uses default MongoDB sorting rules.
+
+#### `#limit`
+
+Instantiates new `Mongo::Query` instance from existing but adding limit of documents to return to it.
+
+#### `#skip`
+
+Instantiates new `Mongo::Query` instance from existing but adding amount of documents to skip to it.
+
+#### `#fields`
+
+Instantiates new `Mongo::Query` instance from existing but adding "fields to return" hash to it.
+
+#### `#count`
+
+Returns number of documents which are satisfying query.
+
+#### `#to_a`
+
+Returns documents of query as array of hashes.
 
 ### BSON
 
