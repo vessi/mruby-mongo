@@ -18,6 +18,9 @@ mrb_value mrb_mongo_collection_init(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_collection_get_database(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_collection_count(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_collection_insert(mrb_state *mrb, mrb_value self);
+mrb_value mrb_mongo_collection_drop(mrb_state *mrb, mrb_value self);
+//mrb_value mrb_mongo_collection_update(mrb_state *mrb, mrb_value self);
+mrb_value mrb_mongo_collection_query(mrb_state *mrb, mrb_value self);
 
 mrb_value mrb_mongo_collection_init(mrb_state *mrb, mrb_value self) {
   mrb_value database, collection_name;
@@ -72,6 +75,59 @@ mrb_value mrb_mongo_collection_count(mrb_state *mrb, mrb_value self) {
   return mrb_fixnum_value(count);
 }
 
+mrb_value mrb_mongo_collection_insert(mrb_state *mrb, mrb_value self) {
+  mrb_mongo_collection_data *data = DATA_PTR(self);
+  mrb_value record_hash, inserted_hash;
+  bson_t *doc;
+  bson_oid_t oid;
+  bson_error_t error;
+
+  mrb_get_args(mrb, "H", &record_hash);
+
+  doc = bson_new();
+  mrb_hash_to_bson(mrb, record_hash, doc);
+
+  //add id if not supplied
+  if (!bson_has_field(doc, "_id")) {
+    bson_oid_init(&oid, NULL);
+    bson_append_oid(doc, "_id", -1, &oid);
+  }
+
+  if (!mongoc_collection_insert(data->collection, MONGOC_INSERT_NONE, doc, NULL, &error)) {
+    bson_destroy(doc);
+    mrb_raise(mrb, E_RUNTIME_ERROR, error.message);
+  }
+
+  inserted_hash = mrb_hash_new(mrb);
+  bson_to_mrb_hash(mrb, doc, inserted_hash);
+  bson_destroy(doc);
+
+  return inserted_hash;
+}
+
+mrb_value mrb_mongo_collection_drop(mrb_state *mrb, mrb_value self) {
+  mrb_mongo_collection_data *data = DATA_PTR(self);
+  mrb_value drop_hash;
+  bson_t *doc;
+  bson_error_t error;
+
+  mrb_get_args(mrb, "|H", &drop_hash);
+  if (!mrb_hash_p(drop_hash)) {
+    drop_hash = mrb_hash_new(mrb);
+  }
+
+  doc = bson_new();
+  mrb_hash_to_bson(mrb, drop_hash, doc);
+
+  if (!mongoc_collection_remove(data->collection, MONGOC_REMOVE_NONE, doc, NULL, &error)) {
+    bson_destroy(doc);
+    mrb_raise(mrb, E_RUNTIME_ERROR, error.message);
+  }
+
+  return mrb_nil_value();
+}
+
+
 mrb_value mrb_mongo_collection_query(mrb_state *mrb, mrb_value self) {
   mrb_value hash_query, query;
   mrb_value query_params[2];
@@ -92,13 +148,4 @@ mrb_value mrb_mongo_collection_query(mrb_state *mrb, mrb_value self) {
   return query;
 }
 
-/*mrb_value mrb_mongo_collection_insert(mrb_state *mrb, mrb_value self) {
-  mrb_mongo_collection_data *data = DATA_PTR(self);
-  struct RClass *_class_mongo = mrb_module_get(mrb, "Mongo");
-  struct RClass *_class_mongo_record = mrb_class_ptr(mrb_const_get(mrb, mrb_obj_value(_class_mongo), mrb_intern_lit(mrb, "Record")));
-  mrb_value record;
-
-  record = mrb_obj_new(mrb, _class_mongo_record, 0, NULL);
-  return record;
-}*/
 #endif

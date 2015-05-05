@@ -15,6 +15,23 @@
 #ifndef _CONVERSIONS_H
 #define _CONVERSIONS_H
 
+//we declare mrb_time here because it's internal for time.c
+enum mrb_timezone {
+  MRB_TIMEZONE_NONE   = 0,
+  MRB_TIMEZONE_UTC    = 1,
+  MRB_TIMEZONE_LOCAL  = 2,
+  MRB_TIMEZONE_LAST   = 3
+};
+
+struct mrb_time {
+  time_t              sec;
+  time_t              usec;
+  enum mrb_timezone   timezone;
+  struct tm           datetime;
+};
+
+static const struct mrb_data_type mrb_time_type = { "Time", mrb_free };
+
 void mrb_to_bson(mrb_state *mrb, const char *key, mrb_value value, bson_t *doc);
 mrb_value bson_to_mrb(mrb_state *mrb, const bson_value_t *value);
 void bson_to_mrb_hash(mrb_state *mrb, const bson_t* doc, mrb_value hash);
@@ -24,6 +41,7 @@ void mrb_hash_to_bson(mrb_state *mrb, mrb_value hash, bson_t *doc);
 void mrb_to_bson(mrb_state *mrb, const char *key, mrb_value value, bson_t *doc) {
   char *str_value;
   int64_t fix_value;
+  uint64_t ufix_value;
   bool bool_value;
   double double_value;
   mrb_value tmp_value;
@@ -50,9 +68,16 @@ void mrb_to_bson(mrb_state *mrb, const char *key, mrb_value value, bson_t *doc) 
       bson_append_int64(doc, key, -1, fix_value);
       break;
     case MRB_TT_FALSE:
+      if (mrb_nil_p(value)) {
+        bson_append_null(doc, key, -1);
+        break;
+      }
     case MRB_TT_TRUE:
       bool_value = mrb_bool(value);
       bson_append_bool(doc, key, -1, bool_value);
+      break;
+    case MRB_TT_UNDEF:
+      bson_append_null(doc, key, -1);
       break;
     case MRB_TT_FLOAT:
       double_value = mrb_float(value);
@@ -70,7 +95,17 @@ void mrb_to_bson(mrb_state *mrb, const char *key, mrb_value value, bson_t *doc) 
       bson_append_document(doc, key, -1, child);
       bson_destroy(child);
       break;
+    case MRB_TT_DATA:
+      if (strcmp(mrb_obj_classname(mrb, value), "Time") == 0) {
+        ufix_value = mrb_fixnum(mrb_funcall_argv(mrb, value, mrb_intern_lit(mrb, "to_i"), 0, NULL)) / 0.001 +
+                     mrb_fixnum(mrb_funcall_argv(mrb, value, mrb_intern_lit(mrb, "usec"), 0, NULL)) / 1000;
+        bson_append_date_time(doc, key, -1, ufix_value);
+        break;
+      }
+      printf("Don't know how to process instance of %s\n", mrb_obj_classname(mrb, value));
+      break;
     default:
+      printf("unrecognized mruby type %d\n", mrb_type(value));
       break;    
   }
 }
@@ -100,6 +135,9 @@ mrb_value bson_to_mrb(mrb_state *mrb, const bson_value_t *value) {
       break;
     case BSON_TYPE_INT32:
       tmp = mrb_fixnum_value(value->value.v_int32);
+      break;
+    case BSON_TYPE_DOUBLE:
+      tmp = mrb_float_value(mrb, value->value.v_double);
       break;
     case BSON_TYPE_DATE_TIME:
       timestamp = value->value.v_datetime;
