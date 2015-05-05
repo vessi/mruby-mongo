@@ -19,7 +19,7 @@ mrb_value mrb_mongo_collection_get_database(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_collection_count(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_collection_insert(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_collection_drop(mrb_state *mrb, mrb_value self);
-//mrb_value mrb_mongo_collection_update(mrb_state *mrb, mrb_value self);
+mrb_value mrb_mongo_collection_update(mrb_state *mrb, mrb_value self);
 mrb_value mrb_mongo_collection_query(mrb_state *mrb, mrb_value self);
 
 mrb_value mrb_mongo_collection_init(mrb_state *mrb, mrb_value self) {
@@ -127,6 +127,38 @@ mrb_value mrb_mongo_collection_drop(mrb_state *mrb, mrb_value self) {
   return mrb_nil_value();
 }
 
+mrb_value mrb_mongo_collection_update(mrb_state *mrb, mrb_value self) {
+  mrb_mongo_collection_data *data = DATA_PTR(self);
+  mrb_value selector_hash, update_hash;
+  mrb_bool upsert;
+  bson_t *selector, *update;
+  bson_error_t error;
+  mongoc_update_flags_t flags;
+
+  flags = MONGOC_UPDATE_MULTI_UPDATE;
+
+  mrb_get_args(mrb, "HH|b", &selector_hash, &update_hash, &upsert);
+  if (!mrb_hash_p(selector_hash)) {
+    selector_hash = mrb_hash_new(mrb);
+  }
+  if (upsert) flags = flags | MONGOC_UPDATE_UPSERT;
+
+  selector = bson_new();
+  update = bson_new();
+  mrb_hash_to_bson(mrb, selector_hash, selector);
+  mrb_hash_to_bson(mrb, update_hash, update);
+
+  if (!mongoc_collection_update(data->collection, flags, selector, update, NULL, &error)) {
+    bson_destroy(selector);
+    bson_destroy(update);
+    mrb_raise(mrb, E_RUNTIME_ERROR, error.message);
+  }
+
+  bson_destroy(selector);
+  bson_destroy(update);
+
+  return mrb_nil_value();
+}
 
 mrb_value mrb_mongo_collection_query(mrb_state *mrb, mrb_value self) {
   mrb_value hash_query, query;

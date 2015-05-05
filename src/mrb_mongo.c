@@ -26,7 +26,7 @@ void mrb_mruby_mongo_gem_init(mrb_state* mrb) {
   mrb_define_method(mrb, class_mongo_collection, "count", mrb_mongo_collection_count, MRB_ARGS_NONE());
   mrb_define_method(mrb, class_mongo_collection, "insert", mrb_mongo_collection_insert, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, class_mongo_collection, "drop", mrb_mongo_collection_drop, MRB_ARGS_REQ(1));
-  //mrb_define_method(mrb, class_mongo_collection, "update", mrb_mongo_collection_update, MRB_ARGS_REQ(2));
+  mrb_define_method(mrb, class_mongo_collection, "update", mrb_mongo_collection_update, MRB_ARGS_REQ(2));
   mrb_define_method(mrb, class_mongo_collection, "where", mrb_mongo_collection_query, MRB_ARGS_OPT(1));
 
   struct RClass *class_mongo_query  = mrb_define_class_under(mrb, class_mongo, "Query", mrb->object_class);
@@ -37,10 +37,6 @@ void mrb_mruby_mongo_gem_init(mrb_state* mrb) {
   mrb_define_method(mrb, class_mongo_query, "fields", mrb_mongo_query_fields, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, class_mongo_query, "count", mrb_mongo_query_count, MRB_ARGS_NONE());
   mrb_define_method(mrb, class_mongo_query, "to_a", mrb_mongo_query_to_array, MRB_ARGS_NONE());
-
-  //struct RClass *class_mongo_record = mrb_define_class_under(mrb, class_mongo, "Record", mrb->hash_class);
-
-  //struct RClass *class_mongo_cursor = mrb_define_class_under(mrb, class_mongo, "Cursor", mrb->object_class);
 
   mongoc_init();
 
