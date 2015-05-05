@@ -11,6 +11,56 @@ conf.gem :git => 'https://github.com/vessi/mruby-mongo.git'
 
 to your `build_config.rb` file and do `make` to build or `make test` to do tests.
 
+## Reference
+
+### Client
+
+#### Initialization
+
+Client accepts MongoDB connection string as a parameter. If no string provided - `mongodb://localhost:27017` will be used.
+
+#### `#databases`
+
+This method returns array with databases stored on provided to client server(s).
+
+#### `#[]`
+
+This method creates `Mongo::Database` instance connected with this client.
+
+#### `#address`
+
+This method provides reader for client's address.
+
+#### `database_exists?`
+
+This method returns `true` if database exists on server
+
+### Database
+
+#### Initialization
+
+Database can be initialized via `Mongo::Client#[]` method or direct by `Mongo::Database.new(client)`. It awaits `Mongo::Client` instance as argument.
+
+#### `#client`
+
+This method provides reader for database's client.
+
+#### `#collections`
+
+This method returns array with collections stored within this database.
+
+#### `#[]`
+
+This method creates `Mongo::Collection` instance connected with this database.
+
+### Collection
+
+### Query
+
+### BSON
+
+BSON is data-type provided for testing hash-to-BSON conversions. You can take a closer look in `include/conversions.h`.
+
 ## Dependencies
 
 To build this gem you should have [mongo-c-driver](https://github.com/mongodb/mongo-c-driver) installed at least with version 1.0.

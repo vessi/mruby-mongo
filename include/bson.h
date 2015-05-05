@@ -28,7 +28,7 @@ mrb_value mrb_mongo_bson_init(mrb_state *mrb, mrb_value self) {
     mrb_hash_to_bson(mrb, arg_hash, bson);
   }
 
-  //initiate mongoc client and set internal data
+  //set internal data
   data = (mrb_mongo_bson_data *)DATA_PTR(self);
   if (data) {
     mrb_free(mrb, data);
