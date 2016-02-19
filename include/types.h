@@ -31,40 +31,20 @@ void mrb_mongo_client_data_free(mrb_state *mrb, void *p);
 void mrb_mongo_database_data_free(mrb_state *mrb, void *p);
 void mrb_mongo_collection_data_free(mrb_state *mrb, void *p);
 
-const struct mrb_data_type mrb_mongo_bson_data_type = {
+static const struct mrb_data_type mrb_mongo_bson_data_type = {
   "mrb_mongo_bson_data", mrb_mongo_bson_data_free,
 };
 
-const struct mrb_data_type mrb_mongo_client_data_type = {
+static const struct mrb_data_type mrb_mongo_client_data_type = {
   "mrb_mongo_client_data", mrb_mongo_client_data_free,
 };
 
-const struct mrb_data_type mrb_mongo_database_data_type = {
+static const struct mrb_data_type mrb_mongo_database_data_type = {
   "mrb_mongo_database_data", mrb_mongo_database_data_free,
 };
 
-const struct mrb_data_type mrb_mongo_collection_data_type = {
+static const struct mrb_data_type mrb_mongo_collection_data_type = {
   "mrb_mongo_collection_data", mrb_mongo_collection_data_free,
-};
-
-void mrb_mongo_bson_data_free(mrb_state *mrb, void *p) {
-  mrb_mongo_bson_data *data = (mrb_mongo_bson_data*)p;
-  bson_destroy(data->bson);
-};
-
-void mrb_mongo_client_data_free(mrb_state *mrb, void *p){
-  mrb_mongo_client_data *data = (mrb_mongo_client_data*)p;
-  mongoc_client_destroy(data->client);
-};
-
-void mrb_mongo_database_data_free(mrb_state *mrb, void *p){
-  mrb_mongo_database_data *data = (mrb_mongo_database_data*)p;
-  mongoc_database_destroy(data->db);
-};
-
-void mrb_mongo_collection_data_free(mrb_state *mrb, void *p){
-  mrb_mongo_collection_data *data = (mrb_mongo_collection_data*)p;
-  mongoc_collection_destroy(data->collection);
 };
 
 #endif

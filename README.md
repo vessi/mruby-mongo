@@ -24,6 +24,16 @@ To build this gem you should have [mongo-c-driver](https://github.com/mongodb/mo
 This gem tests has next requirements:
 - local mongo server, up and running on localhost:27017
 
+## Tests
+
+To launch test you just need to have Ruby installed and launch
+
+```
+$> rake
+```
+
+Default rake task will fetch mruby and launch tests
+
 ## Contribution
 
 If you want to contribute, please follow next instructions:
