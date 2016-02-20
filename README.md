@@ -5,7 +5,7 @@
 
 ## Usage
 
-If you want to use mruby-mongo, just add 
+If you want to use mruby-mongo, just add
 
 ```ruby
 conf.gem :git => 'https://github.com/vessi/mruby-mongo.git'

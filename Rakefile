@@ -9,6 +9,11 @@ task :test => :mruby do
   sh "cd mruby && MRUBY_CONFIG=#{MRUBY_CONFIG} rake all test"
 end
 
+desc 'build'
+task :build => :mruby do
+  sh "cd mruby && MRUBY_CONFIG=#{MRUBY_CONFIG} rake"
+end
+
 desc 'cleanup'
 task :clean do
   sh 'cd mruby && rake deep_clean'

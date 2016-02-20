@@ -1,3 +1,7 @@
+assert 'check default log level' do
+  Mongo.log_level == 0
+end
+
 assert 'connect client without params' do
   client = Mongo::Client.new()
   client.is_a?(Mongo::Client) and client.address == 'mongodb://localhost:27017'

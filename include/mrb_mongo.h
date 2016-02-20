@@ -3,6 +3,7 @@
 #include <mongoc.h>
 #include <mruby.h>
 #include <stdio.h>
+#include "logger.h"
 #include "bson.h"
 #include "client.h"
 #include "database.h"
