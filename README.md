@@ -1,9 +1,11 @@
 # Mongo driver for mRuby
+
+[![Join the chat at https://gitter.im/vessi/mruby-mongo](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/vessi/mruby-mongo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 <!---[![Build Status](https://travis-ci.org/vessi/mruby-mongo.svg?branch=develop)](https://travis-ci.org/vessi/mruby-mongo)-->
 
 ## Usage
 
-If you want to use mruby-mongo, just add 
+If you want to use mruby-mongo, just add
 
 ```ruby
 conf.gem :git => 'https://github.com/vessi/mruby-mongo.git'
@@ -21,6 +23,16 @@ To build this gem you should have [mongo-c-driver](https://github.com/mongodb/mo
 
 This gem tests has next requirements:
 - local mongo server, up and running on localhost:27017
+
+## Tests
+
+To launch test you just need to have Ruby installed and launch
+
+```
+$> rake
+```
+
+Default rake task will fetch mruby and launch tests
 
 ## Contribution
 

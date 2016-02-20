@@ -2,6 +2,15 @@
 
 void mrb_mruby_mongo_gem_init(mrb_state* mrb) {
   struct RClass *class_mongo = mrb_define_module(mrb, "Mongo");
+  mrb_define_const(mrb, class_mongo, "LOG_NONE", mrb_fixnum_value(-1));
+  mrb_define_const(mrb, class_mongo, "LOG_ERROR", mrb_fixnum_value(0));
+  mrb_define_const(mrb, class_mongo, "LOG_CRITICAL", mrb_fixnum_value(1));
+  mrb_define_const(mrb, class_mongo, "LOG_WARNING", mrb_fixnum_value(2));
+  mrb_define_const(mrb, class_mongo, "LOG_MESSAGE", mrb_fixnum_value(3));
+  mrb_define_const(mrb, class_mongo, "LOG_INFO", mrb_fixnum_value(4));
+  mrb_define_const(mrb, class_mongo, "LOG_DEBUG", mrb_fixnum_value(5));
+  mrb_define_class_method(mrb, class_mongo, "log_level", mrb_mongo_get_log_level, MRB_ARGS_NONE());
+  mrb_define_class_method(mrb, class_mongo, "log_level=", mrb_mongo_set_log_level, MRB_ARGS_REQ(1));
 
   struct RClass *class_mongo_bson = mrb_define_class_under(mrb, class_mongo, "Bson", mrb->object_class);
   mrb_define_method(mrb, class_mongo_bson, "initialize", mrb_mongo_bson_init, MRB_ARGS_OPT(1));
@@ -39,6 +48,7 @@ void mrb_mruby_mongo_gem_init(mrb_state* mrb) {
   mrb_define_method(mrb, class_mongo_query, "to_a", mrb_mongo_query_to_array, MRB_ARGS_NONE());
 
   mongoc_init();
+  mrb_mongo_set_log_handler_level(0);
 
   DONE;
 }
