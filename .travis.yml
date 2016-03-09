@@ -5,6 +5,7 @@ addons:
       - bison
       - git
       - gperf
+      - libbson-dev
 services:
   - mongodb
 git:
@@ -15,7 +16,6 @@ compiler:
   - clang
 install:
   - cd mongo-c-driver
-  - git submodule update
   - ./autogen.sh --prefix=$HOME/mongo-c-driver && make && make install
 cache:
   directories:
