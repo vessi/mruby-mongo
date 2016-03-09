@@ -7,6 +7,8 @@ addons:
       - gperf
 services:
   - mongodb
+git:
+  submodules_depth: 2
 language: c
 compiler:
   - gcc
