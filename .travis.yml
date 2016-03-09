@@ -15,9 +15,20 @@ compiler:
   - clang
 before_script:
   - cd ../
+#  - git clone -b r1.3 https://github.com/mongodb/mongo-c-driver
+#  - cd mongo-c-driver
+#  - ./autogen.sh --prefix=build/
+#  - make && make install
   - git clone https://github.com/mruby/mruby.git
   - cd mruby
   - cp -fp ../mruby-mongo/.travis_build_config.rb build_config.rb
   - "mongo test --eval 'db.test.insert({status: \"ok\"})'"
 script:
   - rake all test
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/734ad0b2c08673bdcf94
+    on_success: always
+    on_failure: always
+    on_start: never
