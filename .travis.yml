@@ -2,26 +2,20 @@ sudo: false
 addons:
   apt:
     packages:
-      - rake
       - bison
       - git
       - gperf
-      - libmongo-client-dev
 services:
   - mongodb
 language: c
 compiler:
   - gcc
   - clang
+install:
+  - cd mongo-c-driver && ./autogen.sh --prefix=$HOME/mongo-c-driver && make && make install
 before_script:
-  - cd ../
-#  - git clone -b r1.3 https://github.com/mongodb/mongo-c-driver
-#  - cd mongo-c-driver
-#  - ./autogen.sh --prefix=build/
-#  - make && make install
-  - git clone https://github.com/mruby/mruby.git
   - cd mruby
-  - cp -fp ../mruby-mongo/.travis_build_config.rb build_config.rb
+  - cp -fp ../.travis_build_config.rb build_config.rb
   - "mongo test --eval 'db.test.insert({status: \"ok\"})'"
 script:
   - rake all test
