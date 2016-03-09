@@ -12,11 +12,14 @@ compiler:
   - gcc
   - clang
 install:
-  - cd mongo-c-driver && ./autogen.sh --prefix=$HOME/mongo-c-driver && make && make install
+  - cd mongo-c-driver && git submodule update && ./autogen.sh --prefix=$HOME/mongo-c-driver && make && make install
+cache:
+  directories:
+    - $HOME/mongo-c-driver
 before_script:
+  - "mongo test --eval 'db.test.insert({status: \"ok\"})'"
   - cd mruby
   - cp -fp ../.travis_build_config.rb build_config.rb
-  - "mongo test --eval 'db.test.insert({status: \"ok\"})'"
 script:
   - rake all test
 notifications:
