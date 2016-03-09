@@ -1,6 +1,6 @@
 [submodule "mruby"]
 	path = mruby
-	url = git@github.com:mruby/mruby.git
+	url = https://github.com/mruby/mruby.git
 [submodule "mongo-c-driver"]
 	path = mongo-c-driver
-	url = git@github.com:mongodb/mongo-c-driver.git
+	url = https://github.com/mongodb/mongo-c-driver.git
